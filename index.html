@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Value Bet Finder — Bet365</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f13; --bg2: #16161d; --bg3: #1e1e28;
+      --border: #2a2a38; --gold: #f0c040; --text: #e8e8f0;
+      --muted: #888899; --green: #4caf7d; --red: #e05555;
+      --blue: #5b8dee; --radius: 10px;
+    }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; min-height: 100vh; }
+
+    header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; }
+    .logo-icon { width: 32px; height: 32px; background: var(--gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+    .hero { text-align: center; margin-bottom: 2rem; }
+    .hero h1 { font-size: 26px; font-weight: 700; }
+    .hero h1 span { color: var(--gold); }
+    .hero p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+    .grid { display: grid; grid-template-columns: 290px 1fr; gap: 20px; }
+    @media(max-width:768px){ .grid { grid-template-columns: 1fr; } }
+
+    .panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+    .ptitle { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+    input, select { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-size: 13px; padding: 8px 10px; margin-bottom: 10px; outline: none; transition: border-color .2s; }
+    input:focus, select:focus { border-color: var(--gold); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .chip { font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); cursor: pointer; transition: all .15s; user-select: none; }
+    .chip.on { background: rgba(240,192,64,.12); border-color: var(--gold); color: var(--gold); }
+
+    .divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+    .btn { width: 100%; padding: 11px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity .15s; }
+    .btn-primary { background: var(--gold); color: #0f0f13; margin-top: 12px; }
+    .btn-primary:hover { opacity: .88; }
+    .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); margin-top: 8px; font-size: 13px; }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+    .last-run { font-size: 11px; color: var(--muted); text-align: center; margin-top: 8px; }
+
+    .output-panel { display: flex; flex-direction: column; gap: 14px; }
+    .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+    .stat-num { font-size: 22px; font-weight: 700; color: var(--gold); }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    .result-area { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; min-height: 300px; }
+    .empty { height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); }
+    .empty-icon { font-size: 36px; opacity: .3; }
+
+    .stream-text { font-size: 13px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+    .cursor { display: inline-block; width: 7px; height: 15px; background: var(--gold); vertical-align: text-bottom; margin-left: 2px; animation: blink .7s step-end infinite; }
+    @keyframes blink { 50%{opacity:0} }
+    .spinner { width: 18px; height: 18px; border: 2px solid rgba(240,192,64,.3); border-top-color: var(--gold); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    .error-box { background: rgba(224,85,85,.1); border: 1px solid rgba(224,85,85,.3); border-radius: 8px; padding: 12px; font-size: 13px; color: var(--red); }
+
+    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; box-shadow: 0 8px 32px rgba(0,0,0,.4); transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 999; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.ok { border-color: var(--green); }
+    .toast.err { border-color: var(--red); }
+
+    .info-badge { background: rgba(76,175,125,.1); border: 1px solid rgba(76,175,125,.3); color: var(--green); border-radius: 6px; padding: 8px 12px; font-size: 12px; line-height: 1.5; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="logo-icon">⚡</div> Value Bet Finder</div>
+  <div class="status"><div class="dot"></div> Bet365 Monitor</div>
+</header>
+
+<div class="container">
+  <div class="hero">
+    <h1>Намери <span>Value Bets</span> всеки ден</h1>
+    <p>Автоматичен анализ — изпратен на мейла ти в 12:00</p>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <div class="ptitle">⚙️ Настройки</div>
+
+        <label>Мин. коефициент</label>
+        <input type="number" id="minOdds" value="1.80" min="1.1" max="3.0" step="0.05">
+        <label>Макс. коефициент</label>
+        <input type="number" id="maxOdds" value="2.20" min="1.1" max="3.0" step="0.05">
+        <label>Мин. value edge</label>
+        <select id="minEdge">
+          <option value="5">5%+</option>
+          <option value="8" selected>8%+</option>
+          <option value="10">10%+</option>
+          <option value="15">15%+</option>
+        </select>
+        <label>Период</label>
+        <select id="period">
+          <option value="24" selected>Следващите 24ч</option>
+          <option value="48">Следващите 48ч</option>
+        </select>
+
+        <div class="ptitle" style="margin-top:8px;">🏆 Спортове</div>
+        <div class="chips" id="sportChips">
+          <div class="chip on" data-val="Футбол (PL, LaLiga, Bundesliga, Serie A, UCL)">⚽ Футбол</div>
+          <div class="chip on" data-val="NBA Playoffs">🏀 NBA</div>
+          <div class="chip on" data-val="NHL Playoffs">🏒 NHL</div>
+          <div class="chip on" data-val="PGA Tour / Мейджъри">⛳ Голф</div>
+          <div class="chip" data-val="ATP / WTA Тенис">🎾 Тенис</div>
+          <div class="chip" data-val="MLB Бейзбол">⚾ MLB</div>
+          <div class="chip" data-val="UFC / MMA">🥊 UFC</div>
+          <div class="chip" data-val="Formula 1">🏎️ F1</div>
+          <div class="chip" data-val="Cricket IPL">🏏 Cricket</div>
+          <div class="chip" data-val="Е-спорт CS2/LOL">🎮 Е-спорт</div>
+        </div>
+
+        <div class="ptitle">🔍 Тип анализ</div>
+        <div class="chips" id="typeChips">
+          <div class="chip on" data-val="грешни коефициенти спрямо Pinnacle/Betfair">📊 Грешни коеф.</div>
+          <div class="chip on" data-val="статистически фаворити">📈 Стат. фаворит</div>
+          <div class="chip" data-val="форма (4+ победи от 5)">🔥 Форма</div>
+          <div class="chip" data-val="H2H доминация">📋 H2H</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="info-badge">
+          ✅ Автоматичният мейл в 12:00 е активен.<br>
+          Ключовете се четат от Netlify Environment Variables.
+        </div>
+
+        <button class="btn btn-primary" id="runBtn" onclick="runAnalysis()">⚡ Анализирай сега</button>
+        <div class="last-run" id="lastRun">Последен анализ: —</div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="stats-row" id="statsRow" style="display:none;">
+        <div class="stat-card"><div class="stat-num" id="sTotal">0</div><div class="stat-label">Намерени бона</div></div>
+        <div class="stat-card"><div class="stat-num" id="sHigh">0</div><div class="stat-label">Висока стойност</div></div>
+        <div class="stat-card"><div class="stat-num" id="sEdge">0%</div><div class="stat-label">Среден edge</div></div>
+      </div>
+      <div class="result-area" id="resultArea">
+        <div class="empty" id="emptyState">
+          <div class="empty-icon">📊</div>
+          <div>Натисни "Анализирай сега"</div>
+          <div style="font-size:12px;">или изчакай мейла в 12:00</div>
+        </div>
+        <div id="streamBox" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const sports = new Set(['Футбол (PL, LaLiga, Bundesliga, Serie A, UCL)', 'NBA Playoffs', 'NHL Playoffs', 'PGA Tour / Мейджъри']);
+const types = new Set(['грешни коефициенти спрямо Pinnacle/Betfair', 'статистически фаворити']);
+
+document.querySelectorAll('#sportChips .chip').forEach(c => {
+  c.addEventListener('click', () => { c.classList.toggle('on'); sports.has(c.dataset.val) ? sports.delete(c.dataset.val) : sports.add(c.dataset.val); });
+});
+document.querySelectorAll('#typeChips .chip').forEach(c => {
+  c.addEventListener('click', () => { c.classList.toggle('on'); types.has(c.dataset.val) ? types.delete(c.dataset.val) : types.add(c.dataset.val); });
+});
+
+function buildPrompt() {
+  const today = new Date().toLocaleDateString('bg-BG', {day:'numeric',month:'long',year:'numeric'});
+  return `Днес е ${today}. Ти си експертен анализатор на спортни залози.
+
+Намери VALUE BETS за следващите ${document.getElementById('period').value} часа в: ${[...sports].join(', ')}.
+
+КРИТЕРИИ:
+- Коефициент в Bet365: ${document.getElementById('minOdds').value}–${document.getElementById('maxOdds').value}
+- Минимален edge: ${document.getElementById('minEdge').value}%+
+- Тип: ${[...types].join('; ')}
+
+За всеки залог:
+⚡ ЗАЛОГ #[N]
+🏆 Мач: [name]
+📅 Лига: [league]
+🕐 Дата/час: [datetime]
+🎯 Залог: [exact selection]
+💰 Bet365 коеф: [X.XX]
+📊 Пазарен среден: [X.XX] | Edge: [X%]
+📝 Причина: [2-3 изречения]
+✅ Доверие: [Високо/Средно]
+⚠️ Риск: [risk factors]
+---
+
+Намери 4-5 бона. Отговори на БЪЛГАРСКИ.`;
+}
+
+async function runAnalysis() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Анализира...';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('streamBox').style.display = 'block';
+  document.getElementById('streamBox').innerHTML = '';
+  document.getElementById('statsRow').style.display = 'none';
+
+  const el = document.createElement('div');
+  el.className = 'stream-text';
+  const cur = document.createElement('span');
+  cur.className = 'cursor';
+  el.appendChild(cur);
+  document.getElementById('streamBox').appendChild(el);
+
+  try {
+    // Вика Netlify функцията — не директно Anthropic
+    const resp = await fetch('/.netlify/functions/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: buildPrompt() })
+    });
+
+    if (!resp.ok) throw new Error(`Сървър грешка: ${resp.status}`);
+
+    const data = await resp.json();
+    const text = data.text || 'Няма резултати.';
+
+    let i = 0;
+    const iv = setInterval(() => {
+      if (i < text.length) { cur.before(document.createTextNode(text.charAt(i++))); }
+      else {
+        clearInterval(iv); cur.remove();
+        calcStats(text);
+        const now = new Date().toLocaleString('bg-BG');
+        document.getElementById('lastRun').textContent = 'Последен анализ: ' + now;
+      }
+    }, 6);
+
+  } catch(e) {
+    document.getElementById('streamBox').innerHTML = `<div class="error-box">❌ ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Анализирай отново';
+  }
+}
+
+function calcStats(text) {
+  const bets = (text.match(/⚡ ЗАЛОГ #/g)||[]).length;
+  const high = (text.match(/Доверие: Висок/g)||[]).length;
+  const edges = [...text.matchAll(/Edge: (\d+)%/g)].map(m=>parseInt(m[1])).filter(n=>n<60);
+  const avg = edges.length ? Math.round(edges.reduce((a,b)=>a+b,0)/edges.length) : 0;
+  document.getElementById('sTotal').textContent = bets||'—';
+  document.getElementById('sHigh').textContent = high||'—';
+  document.getElementById('sEdge').textContent = avg ? avg+'%' : '—';
+  document.getElementById('statsRow').style.display = 'grid';
+}
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(()=>t.className='toast', 3000);
+}
+</script>
+</body>
+</html>
