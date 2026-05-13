@@ -23,6 +23,8 @@ const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
 });
 
 const claudeData = await claudeRes.json();
+console.log('Claude response:', JSON.stringify(claudeData));
+if (!claudeData.content) throw new Error('No content: ' + JSON.stringify(claudeData));
 const analysisText = claudeData.content.map(b => b.text || '').join('');
 
 const lines = analysisText.split('\n').map(line => {
