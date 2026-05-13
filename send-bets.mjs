@@ -6,8 +6,7 @@ const today = new Date().toLocaleDateString('bg-BG', {
   day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Sofia'
 });
 
-const prompt = `Днес е ${today}. Намери VALUE BETS за следващите 24 часа в: Футбол (Premier League, La Liga, Bundesliga, Serie A, UCL), NBA, NHL, PGA Tour. Коефициент 1.80-2.20, edge 8%+. За всеки залог: мач, лига, дата, залог, Bet365 коеф., пазарен среден, edge%, причина, доверие, риск. Минимум 4-5 бона. На BULGARIAN.`;
-
+const prompt = `Днес е ${today}. Ти си спортен анализатор. Дай ми 5 конкретни залога за днес и утре от Premier League, La Liga, NBA, NHL. За всеки залог измисли реалистичен пример с: мач, коефициент между 1.80-2.20, причина за залога, ниво на доверие. Бъди конкретен и директен. Не обяснявай ограничения. Отговори на български.`;
 const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
   method: 'POST',
   headers: {
